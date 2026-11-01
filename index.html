@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PeerStudy - 피어스터디</title>
+  <style>
+    :root {
+      --bg: #f3f6ff; --card: #ffffff; --primary: #2f5ef7; --primary-soft: #edf1ff;
+      --text: #1f2837; --muted: #66738c; --line: #dfe8ff; --shadow: rgba(17, 24, 39, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; min-height: 100vh;
+    }
+    .app-container { width: 100%; max-width: 480px; }
+    h1 { color: var(--primary); font-size: 1.8rem; text-align: center; margin-bottom: 20px; }
+    .card { background: var(--card); border-radius: 16px; padding: 20px; box-shadow: 0 8px 18px var(--shadow); margin-bottom: 16px; }
+    .card h2 { font-size: 1.2rem; margin-bottom: 12px; }
+    form { display: flex; gap: 8px; margin-bottom: 16px; }
+    input { flex: 1; padding: 12px; border: 1px solid var(--line); border-radius: 10px; outline: none; font-size: 0.95rem; }
+    input:focus { border-color: var(--primary); }
+    button { background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 16px; font-weight: bold; cursor: pointer; }
+    button:hover { background: #234cd0; }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    li { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f9fbff; border-radius: 10px; border: 1px solid #edf1ff; }
+    li.completed span { text-decoration: line-through; color: var(--muted); }
+    .item-left { display: flex; align-items: center; gap: 10px; }
+    .del-btn { background: transparent; color: #ff5252; padding: 4px 8px; font-size: 0.85rem; }
+    .del-btn:hover { background: #ffebee; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <h1>📚 PeerStudy</h1>
+    
+    <div class="card">
+      <h2>오늘의 공부 할 일</h2>
+      <form id="todo-form">
+        <input type="text" id="todo-input" placeholder="공부할 일을 입력하세요..." required autocomplete="off">
+        <button type="submit">추가</button>
+      </form>
+      <ul id="todo-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    const todoForm = document.getElementById('todo-form');
+    const todoInput = document.getElementById('todo-input');
+    const todoList = document.getElementById('todo-list');
+
+    let todos = JSON.parse(localStorage.getItem('peer_todos')) || [];
+
+    function render() {
+      todoList.innerHTML = '';
+      todos.forEach((todo, index) => {
+        const li = document.createElement('li');
+        li.className = todo.completed ? 'completed' : '';
+        li.innerHTML = `
+          <div class="item-left">
+            <input type="checkbox" ${todo.completed ? 'checked' : ''} onclick="toggle(${index})">
+            <span>${escapeHtml(todo.text)}</span>
+          </div>
+          <button class="del-btn" onclick="remove(${index})">삭제</button>
+        `;
+        todoList.appendChild(li);
+      });
+    }
+
+    todoForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = todoInput.value.trim();
+      if (text) {
+        todos.push({ text, completed: false });
+        sync();
+        todoInput.value = '';
+      }
+    });
+
+    function toggle(index) {
+      todos[index].completed = !todos[index].completed;
+      sync();
+    }
+
+    function remove(index) {
+      todos.splice(index, 1);
+      sync();
+    }
+
+    function sync() {
+      localStorage.setItem('peer_todos', JSON.stringify(todos));
+      render();
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.innerText = str;
+      return div.innerHTML;
+    }
+
+    render();
+  </script>
+
+</body>
+</html>
